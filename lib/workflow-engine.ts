@@ -1,36 +1,27 @@
-export interface WorkflowNode {
-  id: string
-  type: string
-  data: any
-  position: { x: number; y: number }
-}
+import {
+  WorkflowNode,
+  WorkflowEdge,
+  WorkflowResult,
+  NodeExecutorRegistry,
+  defaultNodeRegistry
+} from "./node-types"
 
-export interface WorkflowEdge {
-  id: string
-  source: string
-  target: string
-  targetHandle?: string
-  sourceHandle?: string
-}
+// Re-export types for convenience
+export type {
+  WorkflowNode,
+  WorkflowEdge,
+  WorkflowResult
+} from "./node-types"
 
-export interface WorkflowResult {
-  nodeResults: Record<
-    string,
-    {
-      inputs: Record<string, any>
-      output: any
-      executionTime: number
-      status: "success" | "error"
-      error?: string
-    }
-  >
-  totalExecutionTime: number
-  executionOrder: string[]
-}
+export {
+  NodeExecutorRegistry,
+  defaultNodeRegistry
+} from "./node-types"
 
 export async function runWorkflow(
   workflow: { nodes: WorkflowNode[]; edges: WorkflowEdge[] },
   logger?: (message: string) => void,
+  nodeRegistry: NodeExecutorRegistry = defaultNodeRegistry,
 ): Promise<WorkflowResult> {
   const startTime = Date.now()
   const nodeResults: WorkflowResult["nodeResults"] = {}
@@ -116,7 +107,7 @@ export async function runWorkflow(
       })
 
       // Execute the node
-      const result = await executeNode(node, inputs, log)
+      const result = await executeNode(node, inputs, log, nodeRegistry)
 
       nodeResults[nodeId] = {
         inputs,
@@ -153,111 +144,16 @@ async function executeNode(
   node: WorkflowNode,
   inputs: Record<string, any>,
   log: (message: string) => void,
+  nodeRegistry: NodeExecutorRegistry,
 ): Promise<any> {
-  const { type, data } = node
-
-  switch (type) {
-    case "inputNode":
-      log(`  📥 Input node generating value: ${data.value}`)
-      return data.value
-
-    case "mathNode":
-      const inputA = inputs.inputA
-      const inputB = inputs.inputB
-
-      if (inputA === null || inputA === undefined || inputB === null || inputB === undefined) {
-        throw new Error("Math node requires both inputs A and B")
-      }
-
-      const numA = Number(inputA)
-      const numB = Number(inputB)
-      let result: number
-
-      switch (data.operation) {
-        case "add":
-          result = numA + numB
-          break
-        case "subtract":
-          result = numA - numB
-          break
-        case "multiply":
-          result = numA * numB
-          break
-        case "divide":
-          if (numB === 0) throw new Error("Division by zero")
-          result = numA / numB
-          break
-        default:
-          throw new Error(`Unknown math operation: ${data.operation}`)
-      }
-
-      log(`🧮Math: ${numA} ${data.operation} ${numB} = ${result}`)
-      return result
-
-    case "textNode":
-      const textInput = inputs.input
-      if (textInput === null || textInput === undefined) {
-        throw new Error("Text node requires input")
-      }
-
-      const str = String(textInput)
-      let textResult: string | number
-
-      switch (data.operation) {
-        case "uppercase":
-          textResult = str.toUpperCase()
-          break
-        case "lowercase":
-          textResult = str.toLowerCase()
-          break
-        case "reverse":
-          textResult = str.split("").reverse().join("")
-          break
-        case "length":
-          textResult = str.length
-          break
-        default:
-          throw new Error(`Unknown text operation: ${data.operation}`)
-      }
-
-      log(`  📝 Text: "${str}" → ${data.operation} → "${textResult}"`)
-      return textResult
-
-    case "conditionNode":
-      const condInputA = inputs.inputA
-      const condInputB = inputs.inputB
-
-      if (condInputA === null || condInputA === undefined || condInputB === null || condInputB === undefined) {
-        throw new Error("Condition node requires both inputs A and B")
-      }
-
-      const valueA = Number(condInputA)
-      const valueB = Number(condInputB)
-      let condResult: boolean
-
-      switch (data.condition) {
-        case "greater":
-          condResult = valueA > valueB
-          break
-        case "less":
-          condResult = valueA < valueB
-          break
-        case "equal":
-          condResult = valueA === valueB
-          break
-        default:
-          throw new Error(`Unknown condition: ${data.condition}`)
-      }
-
-      log(`  🔀 Condition: ${valueA} ${data.condition} ${valueB} = ${condResult}`)
-      return condResult
-
-    case "outputNode":
-      const outputInput = inputs.input
-      log(`  📤 Output: ${JSON.stringify(outputInput)}`)
-      return outputInput
-
-    default:
-      throw new Error(`Unknown node type: ${type}`)
+  const executor = nodeRegistry.getExecutor(node.type)
+  
+  if (!executor) {
+    throw new Error(`No executor found for node type: ${node.type}`)
   }
+
+  const context = { inputs, log }
+  const result = await executor.execute(node.data, context)
+  
+  return result.output
 }
