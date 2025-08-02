@@ -4,7 +4,7 @@ import { z } from "zod"
 
 const WorkflowNodeSchema = z.object({
   id: z.string(),
-  type: z.enum(["inputNode", "mathNode", "textNode", "conditionNode", "outputNode"]),
+  type: z.enum(["inputNode", "mathNode", "textNode", "conditionNode", "outputNode","squareRootNode"]),
   position: z.object({
     x: z.number(),
     y: z.number(),
@@ -75,6 +75,14 @@ const SYSTEM_PROMPT = `You are an expert workflow designer that creates visual n
 - Handles: One input (left)
 - Example: { "id": "5", "type": "outputNode", "data": { "label": "Final Result" } }
 
+
+### 6. squareRootNode
+- Purpose: Calculates the square root of a number
+- Required data: { label: string }
+- Handles: One input (left), one output (right)
+- Example: { "id": "6", "type": "squareRootNode", "data": { "label": "Square Root Calculation" } }
+ 
+
 ## Edge Connection Rules:
 
 ### Math Node Connections:
@@ -84,6 +92,9 @@ const SYSTEM_PROMPT = `You are an expert workflow designer that creates visual n
 ### Condition Node Connections:
 - Connect to inputA: { "target": "conditionNodeId", "targetHandle": "inputA" }  
 - Connect to inputB: { "target": "conditionNodeId", "targetHandle": "inputB" }
+
+### Square Root Node Connections:
+- Connect to input: { "target": "squareRootNodeId", "targetHandle": "input" }
 
 ### Other Nodes:
 - Standard connection: { "source": "sourceId", "target": "targetId" }

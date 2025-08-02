@@ -20,6 +20,7 @@ import { TextNode } from "@/components/nodes/text-node"
 import { OutputNode } from "@/components/nodes/output-node"
 import { ConditionNode } from "@/components/nodes/condition-node"
 import { runWorkflow, type WorkflowNode, type WorkflowEdge } from "@/lib/workflow-engine"
+import { SquareRootNode } from "@/components/nodes/square-root-node"
 
 const nodeTypes: NodeTypes = {
   inputNode: InputNode,
@@ -27,6 +28,7 @@ const nodeTypes: NodeTypes = {
   textNode: TextNode,
   outputNode: OutputNode,
   conditionNode: ConditionNode,
+  squareRootNode: SquareRootNode,
 }
 
 const initialNodes: Node[] = [
@@ -315,6 +317,8 @@ function FlowCanvas() {
         return { label: "Display Output", input: null, output: null }
       case "conditionNode":
         return { label: "Condition", condition: "greater", inputA: null, inputB: null, output: null }
+      case "squareRootNode":
+        return { label: "Square Root", input: null, output: null }
       default:
         return { label: "Default Node" }
     }

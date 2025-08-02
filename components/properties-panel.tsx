@@ -169,7 +169,27 @@ export function PropertiesPanel({ node, onUpdateNode, onDeleteNode, onClose }: P
             </div>
           </div>
         )
-
+      case "squareRootNode":
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="input">Input Value</Label>
+              <Input
+                id="input"
+                type="number"
+                value={node.data.input || ""}
+                onChange={(e) => handleInputChange("input", Number(e.target.value))}
+                onKeyDown={handleInputKeyDown}
+              />
+            </div>
+            <div className="p-3 bg-blue-50 rounded">
+              <Label className="text-sm font-medium">Square Root of:</Label>
+              <div className="text-lg font-mono font-bold">{node.data.input ?? "?"}</div>
+              <Label className="text-sm font-medium mt-2">Output:</Label>
+              <div className="text-lg font-mono">{node.data.output ?? "Not executed"}</div>
+            </div>
+          </div>
+        )
       default:
         return <div>No properties available</div>
     }

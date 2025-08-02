@@ -41,6 +41,13 @@ const nodeTypes = [
     description: "Shows final results",
     color: "bg-red-100 border-red-300",
   },
+  {
+    type: "squareRootNode",
+    label: "Square Root",
+    icon: Calculator,
+    description: "Calculates square roots",
+    color: "bg-blue-100 border-blue-300",
+  },
 ]
 
 export function Sidebar() {

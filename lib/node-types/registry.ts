@@ -4,7 +4,7 @@ import { MathNodeExecutor } from "./math-node-executor"
 import { TextNodeExecutor } from "./text-node-executor"
 import { ConditionNodeExecutor } from "./condition-node-executor"
 import { OutputNodeExecutor } from "./output-node-executor"
-
+import { SquareRootNodeExecutor } from "./square-root-executor"
 export class NodeExecutorRegistry {
   private executors = new Map<string, NodeExecutor>()
 
@@ -18,6 +18,7 @@ export class NodeExecutorRegistry {
     this.register(new TextNodeExecutor())
     this.register(new ConditionNodeExecutor())
     this.register(new OutputNodeExecutor())
+    this.register(new SquareRootNodeExecutor())
   }
 
   register(executor: NodeExecutor): void {
